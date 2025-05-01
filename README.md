@@ -17,7 +17,7 @@ For full methodology, experiments, and results, see `report.pdf`
 
 **Create and activate a virtual environment**<br/>
 ```bash
-python -m venv shipscheduler<br/>
+python -m venv shipscheduler
 
 source shipscheduler/bin/activate 
 # or shipscheduler\Scripts\activate on Windows
