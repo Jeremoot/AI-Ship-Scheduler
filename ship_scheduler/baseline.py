@@ -34,7 +34,7 @@ def run_baseline():
         rows.append({
             "ship_id": sid,
             "improvement_h": imp,
-            "improvement_ratio": ratio,
+            "improvement_perc": ratio,
             "time_in_queue": env.time_in_queue[sid],
             "time_in_service": env.time_in_service[sid],
             "time_in_storm": env.time_in_storm[sid],
