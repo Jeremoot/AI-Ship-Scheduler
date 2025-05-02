@@ -27,7 +27,7 @@ pip install -r requirements.txt
 
 
 ## Running the Code
-Edit the YEARS value in ship_scheduler/config.py to control how long the simulation runs (max 10 years).
+Edit the YEARS value in ship_scheduler/config.py to control how long the simulation runs (max 24 years).
 <br/>
 
 - To train the A2C agent:<br/>
