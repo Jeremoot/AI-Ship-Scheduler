@@ -19,7 +19,7 @@ class Ship:
     cur_time: List[float] = field(default_factory=list)
     all_time: List[float] = field(default_factory=list)
     scenarioID: int = 0
-    berth_id: Optional[int] = None
+    berth_id: int = 0
 
     def peek_next_ports(self, k: int = 3) -> List[str]:
         n = len(self.route)

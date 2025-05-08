@@ -19,7 +19,7 @@ PARAMS = os.path.join(RESULTS_DIR, "tuned_params.csv")
 SEED = 2003
 
 # CHANGE ACCORDINGLY
-YEARS = 10
+YEARS = 5
 
 
 

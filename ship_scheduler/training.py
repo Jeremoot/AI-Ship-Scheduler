@@ -3,7 +3,7 @@
 import pandas as pd
 from .env import ShipSchedulingEnv
 from .agent import A2CAgent
-from .config import PARAMS, RESULTS, LEARNING_CURVE, YEARS
+from .config import PARAMS, RESULTS, LEARNING_CURVE, YEARS, LOG_CSV
 from .config import RESULTS
 
 def main():
@@ -76,6 +76,13 @@ def main():
     pd.DataFrame(agent.learning_curve).to_csv(LEARNING_CURVE, index=False)
     print(f"\nSaved results")
     print(df_out)
+
+    log_df = env_train.get_log_df()
+    log_df['berth_id'] = log_df['berth_id'].astype('Int64')
+
+    print(log_df)
+    log_df.to_csv(LOG_CSV, index=False)
+    print(f"Event log written to {LOG_CSV}")
 
 if __name__ == "__main__":
     main()

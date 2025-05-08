@@ -126,7 +126,7 @@ class ShipSchedulingEnv:
                 ship.all_time.append(total_time)
                 ship.cur_time.clear()
 
-            self.log.append((self.time, sid, 'DEPARTED', old_port))
+            self.log.append((self.time, sid, 'DEPARTED', old_port, 0))
 
             # storm penalty right at departure
             sim_dt       = self.start_datetime + timedelta(hours=self.time)
@@ -147,14 +147,14 @@ class ShipSchedulingEnv:
                     break
             reward = reward - self.BETA * storm_flag
             if storm_flag:
-                self.log.append((self.time, sid, 'STORM_ENCOUNTER', ship.current_port))
+                self.log.append((self.time, sid, 'STORM_ENCOUNTER', ship.current_port, 0))
                 self.time_in_storm[sid] += storm_time
 
             delay_h = float(action.get('delay', 0.0))
             ship.ready_to_depart = False
             arrive_t = self.time + delay_h + travel
             heapq.heappush(self.event_queue, (arrive_t, 'arrival', sid))
-            self.log.append((self.time, sid, 'ENROUTE', ship.current_port))
+            self.log.append((self.time, sid, 'ENROUTE', ship.current_port, 0))
 
         elif ev == 'arrival':
             port = self.ports[ship.current_port]
@@ -182,21 +182,21 @@ class ShipSchedulingEnv:
             if berth_id is None:
                 # queue penalty 
                 reward = reward - self.ALPHA * queue_len
-                self.log.append((self.time, sid, 'QUEUED', ship.current_port))
+                self.log.append((self.time, sid, 'QUEUED', ship.current_port, 0))
             else:
                 queue_dur = self.time - ship._arrival_time
                 self.time_in_queue[sid] += queue_dur
                 ship._service_start = self.time
-                self.log.append((self.time, sid, 'BERTHED', berth_id))
+                self.log.append((self.time, sid, 'BERTHED', ship.current_port, berth_id))
                 service_h = self._compute_service_time(ship, port, berth_id)
-                self.log.append((self.time, sid, 'SERVICE_STARTED', berth_id))
+                self.log.append((self.time, sid, 'SERVICE_STARTED', ship.current_port, berth_id))
                 heapq.heappush(self.event_queue, (self.time + service_h, 'service_complete', sid))
 
         elif ev == 'service_complete':
             service_dur = self.time - ship._service_start
             self.time_in_service[sid] += service_dur
             port = self.ports[ship.current_port]
-            self.log.append((self.time, sid, 'SERVICE_COMPLETED', ship.current_port))
+            self.log.append((self.time, sid, 'SERVICE_COMPLETE', ship.current_port, ship.berth_id))
             berth_choice = action.get('berth_choice', None)
             next_sid, freed_id = port.release(choice=berth_choice)
             self.last_freed_berth = freed_id
@@ -205,9 +205,9 @@ class ShipSchedulingEnv:
                 queue_dur = self.time - ship._arrival_time
                 self.time_in_queue[sid] += queue_dur
                 self.ships[next_sid]._service_start = self.time
-                self.log.append((self.time, next_sid, 'BERTHED', port.berth_size(freed_id)))
+                self.log.append((self.time, next_sid, 'BERTHED', self.ships[next_sid].current_port , freed_id))
                 service_h = self._compute_service_time(ship, port, freed_id)
-                self.log.append((self.time, next_sid, 'SERVICE_STARTED', port.berth_size(freed_id)))
+                self.log.append((self.time, next_sid, 'SERVICE_STARTED', self.ships[next_sid].current_port , freed_id))
                 service_h2 = self._compute_service_time(self.ships[next_sid], port, freed_id)
                 heapq.heappush(self.event_queue, (self.time + service_h2, 'service_complete', next_sid))
 
@@ -376,8 +376,4 @@ class ShipSchedulingEnv:
             return total_time, 0.0
 
     def get_log_df(self) -> pd.DataFrame:
-        """
-        Return the entire event log as a pandas DataFrame.
-        Columns: ['time','ship_id','state','detail']
-        """
-        return pd.DataFrame(self.log, columns=['time','ship_id','state','detail'])
+        return pd.DataFrame(self.log, columns=['time','ship_id','state','port', 'berth_id'])
